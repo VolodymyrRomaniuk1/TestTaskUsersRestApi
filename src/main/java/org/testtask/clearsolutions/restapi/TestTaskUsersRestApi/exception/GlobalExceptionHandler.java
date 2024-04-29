@@ -1,5 +1,7 @@
 package org.testtask.clearsolutions.restapi.TestTaskUsersRestApi.exception;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.github.fge.jsonpatch.JsonPatchException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -25,9 +27,25 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
     }
 
-//    @ExceptionHandler
-//    public ResponseEntity<?> handleResponseStatusException(ResponseStatusException exception) {
-//        log.info("ResponseStatusException thrown: " + exception.getMessage());
-//        return ResponseEntity.status(exception.getStatusCode()).body(exception.getReason());
-//    }
+    @ExceptionHandler(JsonPatchException.class)
+    public ResponseEntity<?> handleJsonPatchException(JsonPatchException exception) {
+        log.info("JsonPatchException thrown: " + exception.getMessage());
+        ErrorResponse errorResponse = new ErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR.value(), HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase(), exception.getMessage());
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+    }
+
+    @ExceptionHandler(JsonProcessingException.class)
+    public ResponseEntity<?> handleJsonProcessingException(JsonProcessingException exception) {
+        log.info("JsonProcessingException thrown: " + exception.getMessage());
+        ErrorResponse errorResponse = new ErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR.value(), HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase(), exception.getMessage());
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+    }
+
+    @ExceptionHandler(ResponseStatusException.class)
+    public ResponseEntity<?> handleResponseStatusException(ResponseStatusException exception) {
+        log.info("ResponseStatusException thrown: " + exception.getMessage());
+        ErrorResponse errorResponse = new ErrorResponse(exception.getStatusCode().value(), exception.getStatusCode().toString(), exception.getReason());
+        return ResponseEntity.status(exception.getStatusCode()).body(errorResponse);
+        //return ResponseEntity.status(exception.getStatusCode()).body(exception.getReason());
+    }
 }
