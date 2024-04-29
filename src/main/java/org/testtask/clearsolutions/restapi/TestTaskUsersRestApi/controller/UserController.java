@@ -119,7 +119,12 @@ public class UserController {
     public ResponseEntity<CollectionModel<UserResource>> getAllUsers() {
         List<User> users = userService.getAllUsers();
         List<UserResource> userResources = users.stream()
-                .map(UserResource::new)
+                .map(user -> {
+                    UserResource userResource = new UserResource(user);
+                    Link selfLink = linkTo(methodOn(UserController.class).getUser(user.getId())).withSelfRel();
+                    userResource.add(selfLink);
+                    return userResource;
+                })
                 .toList();
         Link link = linkTo(UserController.class).withSelfRel();
         return ResponseEntity.ok(CollectionModel.of(userResources, link));
