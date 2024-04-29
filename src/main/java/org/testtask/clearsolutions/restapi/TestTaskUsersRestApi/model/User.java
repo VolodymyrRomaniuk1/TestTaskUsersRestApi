@@ -13,18 +13,20 @@ import java.time.LocalDate;
 @Builder
 public class User {
 
-    @NotBlank
-    @Email
+    private long id;
+
+    @NotBlank(message = "Email is required and cannot be blank")
+    @Email(message = "Email must be a valid email")
     private String email;
 
-    @NotBlank
+    @NotBlank(message = "First name is required and cannot be blank")
     private String firstName;
 
-    @NotBlank
+    @NotBlank(message = "Last name is required and cannot be blank")
     private String lastName;
 
-    @NotNull
-    @Past
+    @NotNull(message = "Birth date is required and cannot be null")
+    @Past(message = "Birth date must be in the past")
     private LocalDate birthDate;
 
     private String address;
