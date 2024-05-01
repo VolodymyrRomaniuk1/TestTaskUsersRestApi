@@ -1,5 +1,9 @@
 package org.testtask.clearsolutions.restapi.TestTaskUsersRestApi.service.impl;
 
+import jakarta.annotation.PostConstruct;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.Validator;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.testtask.clearsolutions.restapi.TestTaskUsersRestApi.exception.UserNotFoundException;
@@ -15,7 +19,18 @@ public class UserServiceImpl implements UserService {
     private final List<User> users = new ArrayList<>();
     private long nextId = 1;
 
-    {
+    @Value("${user.minimum.age}")
+    private int minAge;
+
+    private Validator validator;
+
+    @Autowired
+    public UserServiceImpl(Validator validator) {
+        this.validator = validator;
+    }
+
+    @PostConstruct
+    private void initialize() {
         createUser(
                 User.builder()
                         .email("foomail1@mail.com")
@@ -45,17 +60,14 @@ public class UserServiceImpl implements UserService {
         );
     }
 
-    @Value("${user.minimum.age}")
-    private int minAge;
-
     @Override
     public User createUser(User user) {
-        if (!isOlderThanMinAge(user.getBirthDate())) {
-            throw new IllegalArgumentException("User must be at least " + minAge + " years old");
-        }
-        if (getUserByEmail(user.getEmail()).isPresent()) {
+        if (findUserByEmail(user.getEmail()).isPresent()) {
             throw new IllegalArgumentException("User with email " + user.getEmail() + " already exists");
         }
+
+        validateUser(user);
+
         user.setId(nextId++);
         users.add(user);
         return user;
@@ -72,14 +84,15 @@ public class UserServiceImpl implements UserService {
     public User updateUserById(long id, User updatedUser) {
         User user = findUserById(id)
                 .orElseThrow(() -> new UserNotFoundException("User with id " + id + " not found"));
-        if (!isOlderThanMinAge(updatedUser.getBirthDate())) {
-            throw new IllegalArgumentException("User must be at least " + minAge + " years old");
-        }
-        if (getUserByEmail(updatedUser.getEmail()).isPresent()) {
-            if (getUserByEmail(updatedUser.getEmail()).get().getId() != id) {
+
+        if (findUserByEmail(updatedUser.getEmail()).isPresent()) {
+            if (findUserByEmail(updatedUser.getEmail()).get().getId() != id) {
                 throw new IllegalArgumentException("User with email " + user.getEmail() + " already exists");
             }
         }
+
+        validateUser(updatedUser);
+
         user.setEmail(updatedUser.getEmail());
         user.setFirstName(updatedUser.getFirstName());
         user.setLastName(updatedUser.getLastName());
@@ -96,48 +109,12 @@ public class UserServiceImpl implements UserService {
         }
     }
 
-
-//    @Override
-//    public User createUser(User user) {
-//        if (!isOlderThanMinAge(user.getBirthDate())) {
-//            throw new IllegalArgumentException("User must be at least " + minAge + " years old");
-//        }
-//        if (getUserByEmail(user.getEmail()).isPresent()) {
-//            throw new IllegalArgumentException("User with email " + user.getEmail() + " already exists");
-//        }
-//        user.setId(nextId++);
-//        users.add(user);
-//        return user;
-//    }
-
     @Override
-    public Optional<User> getUserByEmail(String email) {
+    public Optional<User> findUserByEmail(String email) {
         return users.stream()
                 .filter(user -> user.getEmail().equals(email))
                 .findFirst();
     }
-
-//    @Override
-//    public User updateUserByEmail(String email, User updatedUser) {
-//        User user = getUserByEmail(email)
-//                .orElseThrow(() -> new UserNotFoundException("User with email " + email + " not found"));
-//        if (!isOlderThanMinAge(updatedUser.getBirthDate())) {
-//            throw new IllegalArgumentException("User must be at least " + minAge + " years old");
-//        }
-//        user.setFirstName(updatedUser.getFirstName());
-//        user.setLastName(updatedUser.getLastName());
-//        user.setBirthDate(updatedUser.getBirthDate());
-//        user.setAddress(updatedUser.getAddress());
-//        user.setPhoneNumber(updatedUser.getPhoneNumber());
-//        return user;
-//    }
-
-//    @Override
-//    public void deleteUserByEmail(String email) {
-//        if (!users.removeIf(user -> user.getEmail().equals(email))) {
-//            throw new UserNotFoundException("User with email " + email + " not found");
-//        }
-//    }
 
     @Override
     public List<User> getAllUsers() {
@@ -160,5 +137,20 @@ public class UserServiceImpl implements UserService {
 
     private boolean isOlderThanMinAge(LocalDate birthDate) {
         return birthDate.plusYears(minAge).isBefore(LocalDate.now());
+    }
+
+    private void validateUser(User user) {
+        if (!isOlderThanMinAge(user.getBirthDate())) {
+            throw new IllegalArgumentException("User must be at least " + minAge + " years old");
+        }
+
+        Set<ConstraintViolation<User>> violations = validator.validate(user);
+
+        if (!violations.isEmpty()) {
+            List<String> errorMessages = violations.stream()
+                    .map(violation -> violation.getPropertyPath() + " " + violation.getMessage())
+                    .toList();
+            throw new IllegalArgumentException("Provided User has errors: " + errorMessages);
+        }
     }
 }
