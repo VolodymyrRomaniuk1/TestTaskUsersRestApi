@@ -5,7 +5,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.testtask.clearsolutions.restapi.TestTaskUsersRestApi.exception.UserNotFoundException;
 import org.testtask.clearsolutions.restapi.TestTaskUsersRestApi.model.User;
 import org.testtask.clearsolutions.restapi.TestTaskUsersRestApi.service.impl.UserServiceImpl;

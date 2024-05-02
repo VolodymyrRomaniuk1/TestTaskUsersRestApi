@@ -53,7 +53,6 @@ public class UserController {
         Link selfLink = linkTo(methodOn(UserController.class).getUser(createdUser.getId())).withSelfRel();
         userResource.add(selfLink);
         return ResponseEntity.status(HttpStatus.CREATED).body(userResource);
-//        return ResponseEntity.created(URI.create(selfLink.getHref())).body(userResource);
     }
 
     @GetMapping("/{id}")
@@ -95,25 +94,6 @@ public class UserController {
         userService.deleteUserById(id);
         return ResponseEntity.ok().build();
     }
-
-//    @GetMapping("/{email}")
-//    public ResponseEntity<User> getUserByEmail(@PathVariable String email) {
-//        User user = userService.getUserByEmail(email)
-//                .orElseThrow(() -> new UserNotFoundException("User with email " + email + " not found"));
-//        return ResponseEntity.ok(user);
-//    }
-//
-//    @PutMapping("/{email}")
-//    public ResponseEntity<User> updateUser(@PathVariable String email, @Valid @RequestBody User user) {
-//        User updatedUser = userService.updateUserByEmail(email, user);
-//        return ResponseEntity.ok(updatedUser);
-//    }
-
-//    @DeleteMapping("/{email}")
-//    public ResponseEntity<Void> deleteUser(@PathVariable String email) {
-//        userService.deleteUserByEmail(email);
-//        return ResponseEntity.ok().build();
-//    }
 
     @GetMapping
     public ResponseEntity<CollectionModel<UserResource>> getAllUsers() {

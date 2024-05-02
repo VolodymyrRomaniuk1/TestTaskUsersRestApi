@@ -46,6 +46,5 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         log.info("ResponseStatusException thrown: " + exception.getMessage());
         ErrorResponse errorResponse = new ErrorResponse(exception.getStatusCode().value(), exception.getStatusCode().toString(), exception.getReason());
         return ResponseEntity.status(exception.getStatusCode()).body(errorResponse);
-        //return ResponseEntity.status(exception.getStatusCode()).body(exception.getReason());
     }
 }
