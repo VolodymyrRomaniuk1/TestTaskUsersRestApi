@@ -16,7 +16,7 @@ import java.util.*;
 @Service
 public class UserServiceImpl implements UserService {
 
-    private final List<User> users = new ArrayList<>();
+    private List<User> users = new ArrayList<>();
     private long nextId = 1;
 
     @Value("${user.minimum.age}")
@@ -31,6 +31,8 @@ public class UserServiceImpl implements UserService {
 
     @PostConstruct
     private void initialize() {
+        users.clear();
+
         createUser(
                 User.builder()
                         .email("foomail1@mail.com")
@@ -67,7 +69,9 @@ public class UserServiceImpl implements UserService {
         }
 
         validateUser(user);
-
+        while (findUserById(nextId).isPresent()) {
+            nextId++;
+        }
         user.setId(nextId++);
         users.add(user);
         return user;
@@ -133,6 +137,10 @@ public class UserServiceImpl implements UserService {
             }
         }
         return foundUsers;
+    }
+
+    public void setUsers(List<User> users) {
+        this.users = users;
     }
 
     private boolean isOlderThanMinAge(LocalDate birthDate) {
